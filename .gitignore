@@ -1,0 +1,68 @@
+# Build artifacts
+bin/
+obj/
+
+# Visual Studio / VS Code
+.vs/
+.vscode/
+*.user
+*.suo
+*.userprefs
+*.csproj.user
+
+# .NET tooling
+project.lock.json
+project.fragment.lock.json
+artifacts/
+stylecop.report.xml
+
+# Logs
+*.log
+logs/
+
+# Generated files
+[Oo]ut/
+wwwroot/lib/
+.DS_Store
+Thumbs.db
+
+# Resharper / Rider
+_ReSharper*/
+*.DotSettings.user
+.idea/
+
+# Packages
+packages/
+*.nupkg
+*.snupkg
+*.nuspec
+
+# Publish
+publish/
+**/Properties/launchSettings.json
+
+# Coverage / test
+coverage/
+*.coverage
+*.coveragexml
+TestResults/
+
+# Secrets / config overrides
+appsettings.*.local.json
+secrets.json
+
+# Node / tooling cache
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Docker
+*.pid
+*.seed
+
+# Temporary files
+*.tmp
+*.temp
+~$*

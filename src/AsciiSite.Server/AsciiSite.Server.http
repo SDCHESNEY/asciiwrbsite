@@ -1,0 +1,6 @@
+@AsciiSite.Server_HostAddress = http://localhost:5120
+
+GET {{AsciiSite.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
