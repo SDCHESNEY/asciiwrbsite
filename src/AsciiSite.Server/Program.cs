@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using AsciiSite.Server;
+using AsciiSite.Shared.Blog;
 using AsciiSite.Shared.Configuration;
 using AsciiSite.Shared.Content;
 using Microsoft.AspNetCore.Diagnostics;
@@ -17,6 +18,7 @@ builder.Services.Configure<AsciiArtOptions>(builder.Configuration.GetSection(Asc
 builder.Services.AddSingleton<IValidateOptions<AsciiArtOptions>, AsciiArtOptionsValidator>();
 builder.Services.AddScoped<IAsciiArtProvider, AsciiArtProvider>();
 builder.Services.AddScoped<IAboutContentProvider, FileSystemAboutContentProvider>();
+builder.Services.AddSingleton<IBlogPostProvider, FileSystemBlogPostProvider>();
 
 var app = builder.Build();
 
@@ -64,7 +66,8 @@ app.Use(async (context, next) =>
     {
         var hero = context.RequestServices.GetRequiredService<IAsciiArtProvider>();
         var about = context.RequestServices.GetRequiredService<IAboutContentProvider>();
-        var payload = await PlainTextResponseWriter.BuildAsync(hero, about, context.RequestAborted);
+        var blog = context.RequestServices.GetRequiredService<IBlogPostProvider>();
+        var payload = await PlainTextResponseWriter.BuildAsync(hero, about, blog, context.RequestAborted);
         context.Response.ContentType = "text/plain";
         await context.Response.WriteAsync(payload, context.RequestAborted);
         return;
@@ -77,12 +80,24 @@ app.UseHttpsRedirection();
 
 app.MapHealthChecks("/health");
 
-app.MapGet("/text", async (IAsciiArtProvider asciiArtProvider, IAboutContentProvider aboutContentProvider, CancellationToken cancellationToken) =>
+app.MapGet("/text", async (IAsciiArtProvider asciiArtProvider, IAboutContentProvider aboutContentProvider, IBlogPostProvider blogPostProvider, CancellationToken cancellationToken) =>
     {
-        var payload = await PlainTextResponseWriter.BuildAsync(asciiArtProvider, aboutContentProvider, cancellationToken);
+        var payload = await PlainTextResponseWriter.BuildAsync(asciiArtProvider, aboutContentProvider, blogPostProvider, cancellationToken);
         return Results.Text(payload, "text/plain");
     })
     .WithName("GetPlainText")
+    .WithOpenApi();
+
+app.MapGet("/feed", async (HttpContext context, IBlogPostProvider blogPostProvider, CancellationToken cancellationToken) =>
+    {
+        var hostValue = context.Request.Host.HasValue ? context.Request.Host.Value : "localhost";
+        var scheme = string.IsNullOrWhiteSpace(context.Request.Scheme) ? "https" : context.Request.Scheme;
+        var baseUri = new Uri($"{scheme}://{hostValue}/");
+        var posts = await blogPostProvider.GetSummariesAsync(cancellationToken);
+        var rss = RssFeedWriter.Build(baseUri, posts);
+        return Results.Text(rss, "application/rss+xml; charset=utf-8");
+    })
+    .WithName("GetRssFeed")
     .WithOpenApi();
 
 var summaries = new[]

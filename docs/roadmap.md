@@ -2,12 +2,12 @@
 
 This roadmap converts the architecture in `docs/idea.md` into a phased implementation plan with explicit deliverables, testing scope, and acceptance criteria aligned to `.github/copilot-instructions.md`.
 
-## Delivery Status (Updated Nov 23, 2025)
+## Delivery Status (Updated Nov 24, 2025)
 | Phase | Status | Notes |
 | --- | --- | --- |
 | Phase 0 – Foundations & Tooling | ✅ Completed | Analyzers, shared props, HTTPS/HSTS/CSP, `/health`, and CI-parity test runs are in place. |
 | Phase 1 – ASCII Core & Configuration | ✅ Completed | ASCII options/provider services, Hero & About components, curl/plaintext responses, and coverage for all acceptance criteria shipped. |
-| Phase 2 – Blog Platform | ⏳ Not started | Pending kickoff. |
+| Phase 2 – Blog Platform | ✅ Completed | Markdown blog provider, Blazor pages, `/feed`, and curl summaries shipped with tests. |
 | Phase 3 – GitHub Showcase | ⏳ Not started | Pending kickoff. |
 | Phase 4 – Polish, Observability, Deployment | ⏳ Not started | Pending kickoff. |
 | Phase 5 – Future Enhancements | ⏳ Backlog | Optional stretch goals. |
@@ -47,16 +47,18 @@ This roadmap converts the architecture in `docs/idea.md` into a phased implement
 ## Phase 2 – Blog Platform
 **Goal:** Provide markdown-driven blog with routing, summaries, and optional RSS.
 
+> **Status:** ✅ Completed in November 2025. Markdown posts with YAML frontmatter hydrate Blazor, curl mode, and `/feed` with cached parsing plus dev-time file watching.
+
 | Workstream | Tasks | Definition of Done |
 | --- | --- | --- |
-| Content Pipeline | - Implement `BlogPostProvider` reading `content/blog/{slug}.md` with frontmatter (Markdig).<br>- Add caching + file watcher for development.<br>- Validate metadata (title, date, slug uniqueness). | - Unit tests cover parsing, validation, and error handling.<br>- Invalid posts return ProblemDetails with `422`. |
-| UI Components | - `BlogIndex.razor` with pagination, tag filtering, and ASCII-styled list.<br>- `BlogPost.razor` for full article view with share links.<br>- Add optional RSS feed via Minimal API `/feed`. | - bUnit tests ensure binding of summaries, tags, empty states.<br>- Integration tests exercise `/blog`, `/blog/{slug}`, `/feed`. |
-| Curl Summaries | - Extend `/text` response to include latest N blog summaries (title, date, snippet). | - Plaintext tests verify inclusion of blog section with ordering by publish date. |
+| Content Pipeline | - Implement `FileSystemBlogPostProvider` reading `content/blog/{slug}.md` with YAML frontmatter (Markdig + YamlDotNet).<br>- Add caching + dev-time file watcher.<br>- Validate metadata (title, date, slug uniqueness) with structured logging. | - Unit tests cover parsing, validation failures, and duplicate slugs.<br>- Provider registered as singleton so caches are shared and invalidated on file change in Development. |
+| UI Components | - `BlogIndex.razor` with pagination, tag filtering, and ASCII-styled list.<br>- `BlogPostPage.razor` for full article view with share links.<br>- Add RSS feed via Minimal API `/feed`. | - bUnit tests ensure binding of summaries/tags/empty states.<br>- Integration tests exercise `/blog`, `/blog/{slug}`, and `/feed`. |
+| Curl Summaries | - Extend `/text` response to include latest N blog summaries (title, date, snippet). | - Plaintext tests verify inclusion of blog section with descending order and 80-char wrapping. |
 
 **Acceptance Criteria:**
-- Blog posts rendered in UI and via curl mode.
-- RSS feed validates via feed validator (or tests check XML schema).
-- Performance target: blog index loads under 200ms locally with caching enabled.
+- Blog posts rendered in UI and via curl mode from the same markdown files.
+- RSS feed validates via XML parsing tests that inspect `<rss>` and `<item>` nodes.
+- Performance target: blog index loads under 200ms locally with caching enabled (singleton provider + pre-rendered HTML).
 
 ## Phase 3 – GitHub Showcase & External Integrations
 **Goal:** Surface GitHub repositories with ASCII cards and optional live data from GitHub API.

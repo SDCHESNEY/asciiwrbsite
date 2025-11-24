@@ -1,0 +1,125 @@
+@page "/blog"
+@inject IBlogPostProvider BlogPostProvider
+
+<PageTitle>Blog</PageTitle>
+
+<section class="blog-index">
+    <header>
+        <h1>ASCII Blog</h1>
+        <p>Markdown-driven stories with curl-friendly summaries.</p>
+    </header>
+
+    @if (_loading)
+    {
+        <p class="text-muted">Loading posts...</p>
+    }
+    else if (_summaries.Count == 0)
+    {
+        <article class="empty-state">
+            <p>No posts found. Add markdown files under <code>content/blog</code> to publish.</p>
+        </article>
+    }
+    else
+    {
+        <div class="tag-filter" role="toolbar" aria-label="Tag filters">
+            <button class="tag-chip @GetTagClass(null)" @onclick="() => SelectTag(null)">All</button>
+            @foreach (var tag in _allTags)
+            {
+                <button class="tag-chip @GetTagClass(tag)" @onclick="() => SelectTag(tag)">@tag</button>
+            }
+        </div>
+
+        @foreach (var post in _pagedSummaries)
+        {
+            <article class="blog-card" data-testid="blog-card">
+                <h2><a href="/blog/@post.Slug">@post.Title</a></h2>
+                <p class="meta">@post.PublishedOn.ToString("MMMM d, yyyy")</p>
+                <p>@post.Summary</p>
+                <div class="tag-list">
+                    @foreach (var tag in post.Tags)
+                    {
+                        <span class="tag">@tag</span>
+                    }
+                </div>
+                <a class="read-more" href="/blog/@post.Slug">Read post →</a>
+            </article>
+        }
+
+        @if (_totalPages > 1)
+        {
+            <nav class="pager" aria-label="Blog pagination">
+                <button class="pager-btn" @onclick="PreviousPage" disabled="@(_currentPage == 1)">Prev</button>
+                <span>Page @_currentPage of @_totalPages</span>
+                <button class="pager-btn" @onclick="NextPage" disabled="@(_currentPage == _totalPages)">Next</button>
+            </nav>
+        }
+    }
+</section>
+
+@code {
+    private readonly List<BlogPostSummary> _summaries = new();
+    private List<BlogPostSummary> _filteredSummaries = new();
+    private List<BlogPostSummary> _pagedSummaries = new();
+    private SortedSet<string> _allTags = new(StringComparer.Ordinal);
+    private bool _loading = true;
+    private string? _selectedTag;
+    private int _currentPage = 1;
+    private int _totalPages = 1;
+    private const int PageSize = 5;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var posts = await BlogPostProvider.GetSummariesAsync();
+        _summaries.AddRange(posts);
+        _allTags = new SortedSet<string>(_summaries.SelectMany(summary => summary.Tags), StringComparer.Ordinal);
+        ApplyFilters();
+        _loading = false;
+    }
+
+    private void SelectTag(string? tag)
+    {
+        _selectedTag = tag;
+        _currentPage = 1;
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        _filteredSummaries = string.IsNullOrWhiteSpace(_selectedTag)
+            ? new List<BlogPostSummary>(_summaries)
+            : _summaries
+                .Where(summary => summary.Tags.Any(tag => string.Equals(tag, _selectedTag, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
+
+        _totalPages = Math.Max(1, (int)Math.Ceiling(_filteredSummaries.Count / (double)PageSize));
+        _currentPage = Math.Clamp(_currentPage, 1, _totalPages);
+        _pagedSummaries = _filteredSummaries
+            .Skip((_currentPage - 1) * PageSize)
+            .Take(PageSize)
+            .ToList();
+    }
+
+    private void NextPage()
+    {
+        if (_currentPage >= _totalPages)
+        {
+            return;
+        }
+
+        _currentPage++;
+        ApplyFilters();
+    }
+
+    private void PreviousPage()
+    {
+        if (_currentPage <= 1)
+        {
+            return;
+        }
+
+        _currentPage--;
+        ApplyFilters();
+    }
+
+    private string GetTagClass(string? tag) => string.Equals(_selectedTag, tag, StringComparison.OrdinalIgnoreCase) ? "active" : string.Empty;
+}

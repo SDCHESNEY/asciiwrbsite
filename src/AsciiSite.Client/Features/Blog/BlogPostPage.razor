@@ -1,0 +1,55 @@
+@page "/blog/{Slug}"
+@inject IBlogPostProvider BlogPostProvider
+
+<PageTitle>@PageHeading</PageTitle>
+
+<section class="blog-post">
+    <a class="back-link" href="/blog">← Back to blog</a>
+
+    @if (_loading)
+    {
+        <p class="text-muted">Loading post...</p>
+    }
+    else if (_post is null)
+    {
+        <article class="empty-state">
+            <h1>Post not found</h1>
+            <p>The requested blog entry is missing or unpublished.</p>
+        </article>
+    }
+    else
+    {
+        <article>
+            <header>
+                <h1>@_post.Title</h1>
+                <p class="meta">Published @_post.PublishedOn.ToString("MMMM d, yyyy")</p>
+                <div class="tag-list">
+                    @foreach (var tag in _post.Tags)
+                    {
+                        <span class="tag">@tag</span>
+                    }
+                </div>
+            </header>
+            <section class="content" data-testid="blog-post-body">
+                @((MarkupString)_post.Html)
+            </section>
+        </article>
+    }
+</section>
+
+@code {
+    [Parameter]
+    public string Slug { get; set; } = string.Empty;
+
+    private BlogPost? _post;
+    private bool _loading = true;
+
+    private string PageHeading => _post?.Title ?? "Blog";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _post = await BlogPostProvider.GetBySlugAsync(Slug);
+        _loading = false;
+    }
+}

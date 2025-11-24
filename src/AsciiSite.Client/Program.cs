@@ -1,4 +1,5 @@
 using AsciiSite.Client.Components;
+using AsciiSite.Shared.Blog;
 using AsciiSite.Shared.Configuration;
 using AsciiSite.Shared.Content;
 using Microsoft.Extensions.Options;
@@ -13,6 +14,7 @@ builder.Services.Configure<AsciiArtOptions>(builder.Configuration.GetSection(Asc
 builder.Services.AddSingleton<IValidateOptions<AsciiArtOptions>, AsciiArtOptionsValidator>();
 builder.Services.AddScoped<IAsciiArtProvider, AsciiArtProvider>();
 builder.Services.AddScoped<IAboutContentProvider, FileSystemAboutContentProvider>();
+builder.Services.AddSingleton<IBlogPostProvider, FileSystemBlogPostProvider>();
 
 var app = builder.Build();
 
@@ -34,3 +36,5 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+
+public partial class Program;

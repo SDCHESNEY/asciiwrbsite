@@ -1,0 +1,75 @@
+.blog-index {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.blog-card {
+    border: 1px solid var(--bs-border-color, #ccc);
+    border-radius: 8px;
+    padding: 1.25rem;
+    background: #0b0b0b;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.blog-card h2 {
+    margin-bottom: 0.25rem;
+}
+
+.blog-card .meta {
+    font-size: 0.9rem;
+    color: #9aa0a6;
+}
+
+.tag-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tag-chip {
+    border: 1px solid #6c63ff;
+    background: transparent;
+    color: #fff;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.tag-chip.active {
+    background: #6c63ff;
+}
+
+.tag-list {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+    margin: 0.5rem 0;
+}
+
+.tag {
+    background: rgba(108, 99, 255, 0.15);
+    border-radius: 4px;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.85rem;
+}
+
+.read-more {
+    font-weight: 600;
+}
+
+.pager {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.pager-btn {
+    padding: 0.35rem 0.75rem;
+}
+
+.empty-state {
+    border: 1px dashed #555;
+    padding: 1rem;
+    border-radius: 8px;
+}

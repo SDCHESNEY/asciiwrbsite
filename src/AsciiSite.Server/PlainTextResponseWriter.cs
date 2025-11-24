@@ -1,4 +1,6 @@
+using System.Linq;
 using System.Text;
+using AsciiSite.Shared.Blog;
 using AsciiSite.Shared.Configuration;
 using AsciiSite.Shared.Content;
 
@@ -7,11 +9,17 @@ namespace AsciiSite.Server;
 internal static class PlainTextResponseWriter
 {
     private const int WrapWidth = 78;
+    private const int BlogSummaryLimit = 3;
 
-    public static async Task<string> BuildAsync(IAsciiArtProvider asciiArtProvider, IAboutContentProvider aboutContentProvider, CancellationToken cancellationToken)
+    public static async Task<string> BuildAsync(
+        IAsciiArtProvider asciiArtProvider,
+        IAboutContentProvider aboutContentProvider,
+        IBlogPostProvider blogPostProvider,
+        CancellationToken cancellationToken)
     {
         var hero = asciiArtProvider.GetHero();
         var about = await aboutContentProvider.GetAsync(cancellationToken);
+        var blogSummaries = await blogPostProvider.GetSummariesAsync(cancellationToken);
 
         var builder = new StringBuilder();
 
@@ -43,10 +51,37 @@ internal static class PlainTextResponseWriter
             builder.AppendLine(line);
         }
 
+        AppendBlogSection(builder, blogSummaries);
+
         builder.AppendLine();
         builder.AppendLine("Powered by ASCII Site. curl /text for this view.");
 
         return builder.ToString();
+    }
+
+    private static void AppendBlogSection(StringBuilder builder, IReadOnlyList<BlogPostSummary> summaries)
+    {
+        builder.AppendLine();
+        builder.AppendLine("BLOG");
+
+        if (summaries.Count == 0)
+        {
+            builder.AppendLine("No posts yet. Add markdown under content/blog to publish updates.");
+            return;
+        }
+
+        foreach (var summary in summaries.Take(BlogSummaryLimit))
+        {
+            builder.AppendLine($"- {summary.Title} ({summary.PublishedOn:yyyy-MM-dd})");
+            foreach (var line in Wrap(summary.Summary, WrapWidth - 2))
+            {
+                builder.Append("  ");
+                builder.AppendLine(line);
+            }
+
+            builder.AppendLine($"  Read: /blog/{summary.Slug}");
+            builder.AppendLine();
+        }
     }
 
     private static IEnumerable<string> Wrap(string text, int width)

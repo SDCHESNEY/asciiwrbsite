@@ -25,9 +25,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\AsciiSite.Server\AsciiSite.Server.csproj" />
+    <ProjectReference Include="..\..\src\AsciiSite.Server\AsciiSite.Server.csproj">
+      <Aliases>global,server</Aliases>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\AsciiSite.Shared\AsciiSite.Shared.csproj" />
-    <ProjectReference Include="..\..\src\AsciiSite.Client\AsciiSite.Client.csproj" />
+    <ProjectReference Include="..\..\src\AsciiSite.Client\AsciiSite.Client.csproj">
+      <Aliases>global,client</Aliases>
+    </ProjectReference>
   </ItemGroup>
 
 </Project>

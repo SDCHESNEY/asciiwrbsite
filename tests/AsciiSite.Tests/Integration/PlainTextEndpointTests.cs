@@ -1,14 +1,16 @@
+extern alias server;
+
 using System.Net;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace AsciiSite.Tests.Integration;
 
-public sealed class PlainTextEndpointTests : IClassFixture<WebApplicationFactory<Program>>
+public sealed class PlainTextEndpointTests : IClassFixture<WebApplicationFactory<server::Program>>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly WebApplicationFactory<server::Program> _factory;
 
-    public PlainTextEndpointTests(WebApplicationFactory<Program> factory)
+    public PlainTextEndpointTests(WebApplicationFactory<server::Program> factory)
     {
         _factory = factory;
     }
@@ -24,6 +26,7 @@ public sealed class PlainTextEndpointTests : IClassFixture<WebApplicationFactory
         var payload = await response.Content.ReadAsStringAsync();
         payload.Should().Contain("NAVIGATION");
         payload.Should().Contain("ABOUT");
+        payload.Should().Contain("BLOG");
     }
 
     [Fact]

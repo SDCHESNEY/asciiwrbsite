@@ -1,3 +1,5 @@
+extern alias server;
+
 using System;
 using System.Net;
 using FluentAssertions;
@@ -5,11 +7,11 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace AsciiSite.Tests.Integration;
 
-public sealed class ApiHardeningTests : IClassFixture<WebApplicationFactory<Program>>
+public sealed class ApiHardeningTests : IClassFixture<WebApplicationFactory<server::Program>>
 {
     private readonly HttpClient _client;
 
-    public ApiHardeningTests(WebApplicationFactory<Program> factory)
+    public ApiHardeningTests(WebApplicationFactory<server::Program> factory)
     {
         _client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {
