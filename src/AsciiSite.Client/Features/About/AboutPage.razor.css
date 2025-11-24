@@ -1,0 +1,26 @@
+.about-section {
+    max-width: 60rem;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.about-card {
+    background: #111318;
+    border-radius: 0.5rem;
+    border: 1px solid #2b2f36;
+    padding: 1.5rem;
+    color: #e6edf3;
+    font-family: "Inter", "Segoe UI", sans-serif;
+}
+
+.about-card h1,
+.about-card h2,
+.about-card h3 {
+    color: #66fcf1;
+}
+
+.about-card code {
+    background: #1f2328;
+    padding: 0.1rem 0.3rem;
+    border-radius: 0.25rem;
+}

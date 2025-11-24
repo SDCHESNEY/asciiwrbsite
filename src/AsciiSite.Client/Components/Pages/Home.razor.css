@@ -1,0 +1,17 @@
+.home-blurb {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    border-left: 3px solid #45a29e;
+    background: #0f1115;
+    color: #d8dee9;
+}
+
+.home-blurb code {
+    background: #1f2328;
+    padding: 0.15rem 0.25rem;
+    border-radius: 0.25rem;
+}
+
+.home-blurb a {
+    color: #66fcf1;
+}

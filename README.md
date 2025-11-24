@@ -22,6 +22,37 @@ Each increment follows the detailed plan in `docs/roadmap.md`. Highlights:
 
 Acceptance criteria per phase always include updated documentation, passing format/build/test/vulnerability scans, and security reviews.
 
+## Phase 1 Usage Guide
+
+### Configure the ASCII hero
+- Server and client both bind `AsciiArtOptions` from `appsettings*.json`. Override only the values you need; anything omitted falls back to `AsciiArtDefaults` in `src/AsciiSite.Shared`.
+- To replace the banner, add a `HeroLines` array (max 20 entries, 80 chars each) to `src/AsciiSite.Server/appsettings.json` and mirror it in the client if you want design-time parity:
+
+```json
+"AsciiArt": {
+	"HeroLines": [
+		"  __  ___  ",
+		" /  |/  /  ",
+		"/ /|_/ /   "
+	],
+	"Tagline": "ASCII-first storytelling for both browsers and curl.",
+	"CallToActionText": "Explore the roadmap",
+	"CallToActionUrl": "/docs/roadmap"
+}
+```
+- Validation enforces the limits documented above; `dotnet test` fails fast if the JSON violates them.
+
+### Plaintext / curl mode
+- Run the server (`dotnet run --project src/AsciiSite.Server`) and hit either of the following:
+	- `curl -H "Accept: text/plain" http://localhost:5080/`
+	- `curl http://localhost:5080/text`
+- Both paths stream the hero banner, tagline, navigation list, and an About summary, making the site usable from terminals, CI health checks, and automation scripts.
+
+### Editing About content
+- Markdown lives in `content/about.md`; edit it to change both the Blazor About page and the curl/plaintext summary.
+- The first paragraph becomes the summary shown in curl output, so keep it concise and non-HTML when possible.
+- Hot reload picks up file changes while the server runs, so local authors can iterate without restarting.
+
 ## Development
 ```bash
 # Restore tools and packages

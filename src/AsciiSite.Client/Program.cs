@@ -1,10 +1,18 @@
 using AsciiSite.Client.Components;
+using AsciiSite.Shared.Configuration;
+using AsciiSite.Shared.Content;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.Configure<AsciiArtOptions>(builder.Configuration.GetSection(AsciiArtOptions.SectionName));
+builder.Services.AddSingleton<IValidateOptions<AsciiArtOptions>, AsciiArtOptionsValidator>();
+builder.Services.AddScoped<IAsciiArtProvider, AsciiArtProvider>();
+builder.Services.AddScoped<IAboutContentProvider, FileSystemAboutContentProvider>();
 
 var app = builder.Build();
 

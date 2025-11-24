@@ -1,13 +1,22 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using AsciiSite.Server;
+using AsciiSite.Shared.Configuration;
+using AsciiSite.Shared.Content;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 builder.Services.AddHealthChecks();
+builder.Services.Configure<AsciiArtOptions>(builder.Configuration.GetSection(AsciiArtOptions.SectionName));
+builder.Services.AddSingleton<IValidateOptions<AsciiArtOptions>, AsciiArtOptionsValidator>();
+builder.Services.AddScoped<IAsciiArtProvider, AsciiArtProvider>();
+builder.Services.AddScoped<IAboutContentProvider, FileSystemAboutContentProvider>();
 
 var app = builder.Build();
 
@@ -46,9 +55,35 @@ app.Use(async (context, next) =>
     await next();
 });
 
+app.Use(async (context, next) =>
+{
+    var acceptsPlainText = context.Request.Headers.Accept.Any(value =>
+        value?.Contains("text/plain", StringComparison.OrdinalIgnoreCase) == true);
+
+    if (acceptsPlainText && context.Request.Path == "/")
+    {
+        var hero = context.RequestServices.GetRequiredService<IAsciiArtProvider>();
+        var about = context.RequestServices.GetRequiredService<IAboutContentProvider>();
+        var payload = await PlainTextResponseWriter.BuildAsync(hero, about, context.RequestAborted);
+        context.Response.ContentType = "text/plain";
+        await context.Response.WriteAsync(payload, context.RequestAborted);
+        return;
+    }
+
+    await next();
+});
+
 app.UseHttpsRedirection();
 
 app.MapHealthChecks("/health");
+
+app.MapGet("/text", async (IAsciiArtProvider asciiArtProvider, IAboutContentProvider aboutContentProvider, CancellationToken cancellationToken) =>
+    {
+        var payload = await PlainTextResponseWriter.BuildAsync(asciiArtProvider, aboutContentProvider, cancellationToken);
+        return Results.Text(payload, "text/plain");
+    })
+    .WithName("GetPlainText")
+    .WithOpenApi();
 
 var summaries = new[]
 {

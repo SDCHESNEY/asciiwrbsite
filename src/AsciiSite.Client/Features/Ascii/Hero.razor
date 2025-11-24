@@ -1,0 +1,36 @@
+@using AsciiSite.Shared.Configuration
+@inject IAsciiArtProvider AsciiArtProvider
+
+@if (_hero is null)
+{
+    <section class="hero" aria-live="polite">
+        <p class="text-muted">Loading ASCII banner...</p>
+    </section>
+}
+else
+{
+    <section class="hero" aria-label="ASCII hero">
+        <pre>@HeroBlock</pre>
+        <p class="tagline">@_hero.Tagline</p>
+        <a class="cta" href="@_hero.CallToActionUrl">@_hero.CallToActionText</a>
+        <ul class="nav-links">
+            @foreach (var link in _hero.Navigation)
+            {
+                <li><a href="@link.Url">@link.Text</a></li>
+            }
+        </ul>
+    </section>
+}
+
+@code {
+    private AsciiHeroContent? _hero;
+
+    private string HeroBlock => _hero is null
+        ? string.Empty
+        : string.Join(Environment.NewLine, _hero.HeroLines);
+
+    protected override void OnInitialized()
+    {
+        _hero = AsciiArtProvider.GetHero();
+    }
+}

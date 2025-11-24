@@ -2,8 +2,20 @@
 
 This roadmap converts the architecture in `docs/idea.md` into a phased implementation plan with explicit deliverables, testing scope, and acceptance criteria aligned to `.github/copilot-instructions.md`.
 
+## Delivery Status (Updated Nov 23, 2025)
+| Phase | Status | Notes |
+| --- | --- | --- |
+| Phase 0 – Foundations & Tooling | ✅ Completed | Analyzers, shared props, HTTPS/HSTS/CSP, `/health`, and CI-parity test runs are in place. |
+| Phase 1 – ASCII Core & Configuration | ✅ Completed | ASCII options/provider services, Hero & About components, curl/plaintext responses, and coverage for all acceptance criteria shipped. |
+| Phase 2 – Blog Platform | ⏳ Not started | Pending kickoff. |
+| Phase 3 – GitHub Showcase | ⏳ Not started | Pending kickoff. |
+| Phase 4 – Polish, Observability, Deployment | ⏳ Not started | Pending kickoff. |
+| Phase 5 – Future Enhancements | ⏳ Backlog | Optional stretch goals. |
+
 ## Phase 0 – Foundations & Tooling
 **Goal:** Ensure the repo enforces coding standards, testing, and security pre-checks before feature work begins.
+
+> **Status:** ✅ Completed in November 2025. Tooling, security baseline, and health endpoint are live, with integration tests verifying `/health` and security headers.
 
 | Workstream | Tasks | Definition of Done |
 | --- | --- | --- |
@@ -18,6 +30,8 @@ This roadmap converts the architecture in `docs/idea.md` into a phased implement
 
 ## Phase 1 – ASCII Core & Configuration
 **Goal:** Deliver the ASCII hero, configuration binding, curl/plain text mode, and About page skeleton.
+
+> **Status:** ✅ Completed in November 2025. The Hero/About experiences, plaintext mode, and markdown-driven content are shipping with unit, component, and integration coverage.
 
 | Workstream | Tasks | Definition of Done |
 | --- | --- | --- |

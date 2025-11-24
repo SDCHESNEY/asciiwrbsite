@@ -1,0 +1,35 @@
+@page "/about"
+@using AsciiSite.Shared.Content
+@inject IAboutContentProvider AboutContentProvider
+
+<PageTitle>About</PageTitle>
+
+<section class="about-section">
+    <h1>About ASCII Site</h1>
+
+    @if (_content is null)
+    {
+        <p class="text-muted">Loading about content...</p>
+    }
+    else if (string.IsNullOrWhiteSpace(_content.Markdown))
+    {
+        <article class="about-card">
+            <p>Update <code>content/about.md</code> to share your story. Changes hot-reload in Development.</p>
+        </article>
+    }
+    else
+    {
+        <article class="about-card" data-testid="about-markdown">
+            @((MarkupString)_content.Html)
+        </article>
+    }
+</section>
+
+@code {
+    private AboutContent? _content;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _content = await AboutContentProvider.GetAsync();
+    }
+}
