@@ -1,8 +1,13 @@
 using AsciiSite.Client.Features.Ascii;
+using AsciiSite.Client.Services;
 using AsciiSite.Shared.Configuration;
+using AsciiSite.Shared.Localization;
 using Bunit;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.JSInterop;
 
 namespace AsciiSite.Tests.Features;
 
@@ -21,6 +26,11 @@ public sealed class HeroComponentTests
         );
 
         ctx.Services.AddSingleton<IAsciiArtProvider>(new FakeAsciiArtProvider(heroContent));
+        ctx.Services.AddSingleton<IJSRuntime>(ctx.JSInterop.JSRuntime);
+        ctx.Services.AddSingleton<PreferencesStore>();
+        ctx.Services.AddSingleton<ILocalizationProvider>(new FakeLocalizationProvider(heroContent));
+        ctx.Services.AddSingleton<ILogger<LocalizationState>>(NullLogger<LocalizationState>.Instance);
+        ctx.Services.AddSingleton<LocalizationState>();
 
         var cut = ctx.Render<Hero>();
 
@@ -40,5 +50,28 @@ public sealed class HeroComponentTests
         }
 
         public AsciiHeroContent GetHero() => _hero;
+    }
+
+    private sealed class FakeLocalizationProvider : ILocalizationProvider
+    {
+        private readonly HeroLocalization _hero;
+
+        public FakeLocalizationProvider(AsciiHeroContent heroContent)
+        {
+            _hero = new HeroLocalization("en", heroContent.Tagline, heroContent.CallToActionText, heroContent.CallToActionUrl);
+        }
+
+        public HeroLocalization GetHeroLocalization(string? culture = null) => _hero;
+
+        public IReadOnlyList<LocalizationCulture> GetSupportedCultures() =>
+            new[]
+            {
+                new LocalizationCulture
+                {
+                    Culture = "en",
+                    DisplayName = "English",
+                    Hero = _hero
+                }
+            };
     }
 }

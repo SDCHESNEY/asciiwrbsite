@@ -4,6 +4,7 @@ using System;
 using System.Net;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AsciiSite.Tests.Integration;
 
@@ -56,6 +57,11 @@ public sealed class PlainTextEndpointTests : IClassFixture<WebApplicationFactory
     {
         var client = _factory.CreateClient();
         client.DefaultRequestHeaders.AcceptLanguage.ParseAdd("es");
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var localizationProvider = scope.ServiceProvider.GetRequiredService<AsciiSite.Shared.Localization.ILocalizationProvider>();
+        var heroLocalization = localizationProvider.GetHeroLocalization("es");
+        heroLocalization.Tagline.Should().Be("Narrativas ASCII para navegadores y terminales.");
 
         var response = await client.GetAsync("/text");
 

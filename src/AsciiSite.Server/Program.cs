@@ -138,7 +138,7 @@ app.Use(async (context, next) =>
         context.Response.ContentType = "text/plain";
         var headers = context.Response.GetTypedHeaders();
         headers.CacheControl = new CacheControlHeaderValue { Public = true, MaxAge = TimeSpan.FromSeconds(30) };
-        context.Response.Headers[HeaderNames.Vary] = "Accept";
+        context.Response.Headers[HeaderNames.Vary] = "Accept, Accept-Language";
         await context.Response.WriteAsync(payload, context.RequestAborted);
         return;
     }
@@ -157,11 +157,11 @@ app.MapGet("/text", async (HttpContext httpContext, IAsciiArtProvider asciiArtPr
         var payload = await PlainTextResponseWriter.BuildAsync(asciiArtProvider, aboutContentProvider, blogPostProvider, gitHubRepoService, heroLocalization, cancellationToken);
         var headers = httpContext.Response.GetTypedHeaders();
         headers.CacheControl = new CacheControlHeaderValue { Public = true, MaxAge = TimeSpan.FromSeconds(30) };
-        httpContext.Response.Headers[HeaderNames.Vary] = "Accept";
+        httpContext.Response.Headers[HeaderNames.Vary] = "Accept, Accept-Language";
         return Results.Text(payload, "text/plain");
     })
     .WithName("GetPlainText")
-    .WithMetadata(new ResponseCacheAttribute { Duration = 30, Location = ResponseCacheLocation.Any, VaryByHeader = "Accept" })
+    .WithMetadata(new ResponseCacheAttribute { Duration = 30, Location = ResponseCacheLocation.Any, VaryByHeader = "Accept,Accept-Language" })
     .WithOpenApi();
 
 app.MapGet("/feed", async (HttpContext context, IBlogPostProvider blogPostProvider, CancellationToken cancellationToken) =>

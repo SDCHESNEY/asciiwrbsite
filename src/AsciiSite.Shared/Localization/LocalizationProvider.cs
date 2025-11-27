@@ -48,7 +48,19 @@ public sealed class LocalizationProvider : ILocalizationProvider
             return null;
         }
 
-        return supported.FirstOrDefault(item => string.Equals(item.Culture, culture, StringComparison.OrdinalIgnoreCase));
+        var exact = supported.FirstOrDefault(item => string.Equals(item.Culture, culture, StringComparison.OrdinalIgnoreCase));
+        if (exact is not null)
+        {
+            return exact;
+        }
+
+        var neutral = culture.Split('-', 2, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(neutral))
+        {
+            return null;
+        }
+
+        return supported.FirstOrDefault(item => string.Equals(item.Culture, neutral, StringComparison.OrdinalIgnoreCase));
     }
 
     private static string? NormalizeCulture(string? culture)
@@ -58,6 +70,6 @@ public sealed class LocalizationProvider : ILocalizationProvider
             return null;
         }
 
-        return culture.Replace('_', '-');
+        return culture.Replace('_', '-').Trim();
     }
 }

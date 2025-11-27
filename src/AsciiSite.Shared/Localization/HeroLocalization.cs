@@ -3,12 +3,25 @@ namespace AsciiSite.Shared.Localization;
 /// <summary>
 /// Represents localized hero content (tagline + CTA strings).
 /// </summary>
-/// <param name="Culture">IETF language tag (e.g., en, es, fr-FR).</param>
-/// <param name="Tagline">Localized tagline.</param>
-/// <param name="CallToActionText">Localized CTA text.</param>
-/// <param name="CallToActionUrl">Optional CTA URL override.</param>
-public sealed record HeroLocalization(
-    string Culture,
-    string Tagline,
-    string CallToActionText,
-    string? CallToActionUrl);
+public sealed record HeroLocalization
+{
+    public HeroLocalization()
+    {
+    }
+
+    public HeroLocalization(string culture, string tagline, string callToActionText, string? callToActionUrl)
+    {
+        Culture = culture;
+        Tagline = tagline;
+        CallToActionText = callToActionText;
+        CallToActionUrl = callToActionUrl;
+    }
+
+    public string Culture { get; set; } = "en";
+
+    public string Tagline { get; set; } = "ASCII-first storytelling for both browsers and curl.";
+
+    public string CallToActionText { get; set; } = "Explore the roadmap";
+
+    public string? CallToActionUrl { get; set; } = "/docs/roadmap";
+}

@@ -3,16 +3,16 @@
 @inject ThemeManager ThemeManager
 @implements IDisposable
 
-<div class="preferences-panel" aria-label="Display settings">
+<div class="preferences-panel" aria-label="Display settings" @onclick:stopPropagation="true" @onchange:stopPropagation="true">
     <label>
         Theme
-        <button type="button" class="theme-toggle" @onclick="ToggleTheme">
+        <button type="button" class="theme-toggle" @onclick="ToggleTheme" @onclick:stopPropagation="true">
             @CurrentThemeLabel
         </button>
     </label>
     <label>
         Language
-        <select @onchange="OnCultureChanged" value="@Localization.CurrentCulture">
+        <select @onchange="OnCultureChanged" @onchange:stopPropagation="true" value="@Localization.CurrentCulture">
             @foreach (var culture in Localization.Cultures)
             {
                 <option value="@culture.Culture">@culture.DisplayName</option>
