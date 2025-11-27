@@ -16,7 +16,7 @@ Each increment follows the detailed plan in `docs/roadmap.md`. Highlights:
 - **Phase 0 – Foundations & Tooling (complete):** analyzers, shared props, HTTPS/HSTS/CSP, health endpoint, and green `dotnet test --configuration Release` runs in CI.
 - **Phase 1 – ASCII Core & Configuration (complete):** `AsciiArtOptions`, provider services, Hero & About components, and curl/plaintext delivery (`/text`, `Accept: text/plain`).
 - **Phase 2 – Blog Platform (complete):** markdown-driven posts (`content/blog/{slug}.md`), caching, YAML frontmatter validation, `BlogIndex`/`BlogPost` components, RSS feed, and curl summaries.
-- **Phase 3 – GitHub Showcase:** typed `HttpClient` integrations, ASCII-styled repo cards, and curl-safe fallbacks.
+- **Phase 3 – GitHub Showcase (complete):** typed `HttpClient` integrations, ASCII-styled repo cards, filters, and curl-safe fallbacks.
 - **Phase 4 – Observability & Delivery:** structured logging, metrics, Docker multi-stage builds, cloud deployment scripts, and CI publishing workflows.
 - **Phase 5 – Future Enhancements:** admin tooling, localization, ASCII animations, headless CMS integrations.
 
@@ -77,6 +77,36 @@ tags:
 - `/blog` lists posts with ASCII-styled cards, tag filters, and pagination (5 posts per page). `/blog/{slug}` renders the full article.
 - `/feed` emits an RSS 2.0 document backed by the same markdown files. CI or feed readers can follow the project without scraping HTML.
 - `/text` includes the hero, navigation, About summary, and the latest three blog summaries (title, publish date, and permalink) for parity with terminal-first workflows.
+
+## Phase 3 Usage Guide
+
+### Configure the GitHub showcase
+- Populate the `GitHub` section in `appsettings*.json` (client + server) with fallback repositories. Each entry supports `Owner`, `Name`, `DisplayName`, `Description`, `Language`, `Topics`, `Stars`, and `Url`. Tokens for live API calls belong in user secrets or Key Vault only.
+- GitHub data flows through `IGitHubRepoService`, which caches responses (`CacheDurationMinutes`) and automatically falls back to the configured metadata whenever the API rate-limits or fails.
+
+```json
+"GitHub": {
+	"EnableLiveUpdates": true,
+	"CacheDurationMinutes": 30,
+	"Token": "{use secrets}",
+	"Repositories": [
+		{
+			"Owner": "SDCHESNEY",
+			"Name": "asciiwrbsite",
+			"DisplayName": "ASCII Site",
+			"Description": "Blazor + minimal API playground for ASCII storytelling.",
+			"Language": "C#",
+			"Topics": ["blazor", "aspnetcore", "ascii"],
+			"Stars": 0
+		}
+	]
+}
+```
+
+### UI and curl experiences
+- Visit `/github` to see ASCII-bordered repo cards with live/fallback metadata, sortable by star count and filterable via language/topic dropdowns.
+- The navigation menu and home page link directly to the showcase, keeping discovery simple for browser users.
+- `/text` (and `Accept: text/plain` on `/`) now includes a `GITHUB` section that lists up to four repositories with links, topics, and wrapped descriptions so curl users receive the same insight as the UI.
 
 ## Development
 ```bash

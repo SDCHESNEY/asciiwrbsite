@@ -5,6 +5,7 @@ using AsciiSite.Server;
 using AsciiSite.Shared.Blog;
 using AsciiSite.Shared.Configuration;
 using AsciiSite.Shared.Content;
+using AsciiSite.Shared.GitHub;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
@@ -14,11 +15,19 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 builder.Services.AddHealthChecks();
+builder.Services.AddMemoryCache();
 builder.Services.Configure<AsciiArtOptions>(builder.Configuration.GetSection(AsciiArtOptions.SectionName));
 builder.Services.AddSingleton<IValidateOptions<AsciiArtOptions>, AsciiArtOptionsValidator>();
 builder.Services.AddScoped<IAsciiArtProvider, AsciiArtProvider>();
 builder.Services.AddScoped<IAboutContentProvider, FileSystemAboutContentProvider>();
 builder.Services.AddSingleton<IBlogPostProvider, FileSystemBlogPostProvider>();
+builder.Services.Configure<GitHubRepoOptions>(builder.Configuration.GetSection(GitHubRepoOptions.SectionName));
+builder.Services.AddHttpClient<IGitHubRepoService, GitHubRepoService>(client =>
+    {
+        client.BaseAddress = new Uri("https://api.github.com/");
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("AsciiSite.Server/1.0");
+        client.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
+    });
 
 var app = builder.Build();
 
@@ -67,7 +76,8 @@ app.Use(async (context, next) =>
         var hero = context.RequestServices.GetRequiredService<IAsciiArtProvider>();
         var about = context.RequestServices.GetRequiredService<IAboutContentProvider>();
         var blog = context.RequestServices.GetRequiredService<IBlogPostProvider>();
-        var payload = await PlainTextResponseWriter.BuildAsync(hero, about, blog, context.RequestAborted);
+        var repos = context.RequestServices.GetRequiredService<IGitHubRepoService>();
+        var payload = await PlainTextResponseWriter.BuildAsync(hero, about, blog, repos, context.RequestAborted);
         context.Response.ContentType = "text/plain";
         await context.Response.WriteAsync(payload, context.RequestAborted);
         return;
@@ -80,9 +90,9 @@ app.UseHttpsRedirection();
 
 app.MapHealthChecks("/health");
 
-app.MapGet("/text", async (IAsciiArtProvider asciiArtProvider, IAboutContentProvider aboutContentProvider, IBlogPostProvider blogPostProvider, CancellationToken cancellationToken) =>
+app.MapGet("/text", async (IAsciiArtProvider asciiArtProvider, IAboutContentProvider aboutContentProvider, IBlogPostProvider blogPostProvider, IGitHubRepoService gitHubRepoService, CancellationToken cancellationToken) =>
     {
-        var payload = await PlainTextResponseWriter.BuildAsync(asciiArtProvider, aboutContentProvider, blogPostProvider, cancellationToken);
+        var payload = await PlainTextResponseWriter.BuildAsync(asciiArtProvider, aboutContentProvider, blogPostProvider, gitHubRepoService, cancellationToken);
         return Results.Text(payload, "text/plain");
     })
     .WithName("GetPlainText")

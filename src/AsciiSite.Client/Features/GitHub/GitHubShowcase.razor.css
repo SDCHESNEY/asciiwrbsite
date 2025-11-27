@@ -1,0 +1,89 @@
+.github-showcase {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.github-showcase header {
+    border-left: 4px solid #6c63ff;
+    padding-left: 1rem;
+}
+
+.filters {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.filters label {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.95rem;
+    gap: 0.35rem;
+}
+
+.repo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.repo-card {
+    border: 2px dashed #6c63ff;
+    border-radius: 8px;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-height: 220px;
+}
+
+.repo-card .repo-meta {
+    color: #a3a3a3;
+    font-size: 0.9rem;
+}
+
+.repo-card .description {
+    flex: 1;
+}
+
+.repo-card .topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+
+.repo-card .topic {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.8rem;
+    text-transform: lowercase;
+}
+
+.repo-card footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+}
+
+.repo-card .cta {
+    font-weight: 600;
+}
+
+.badge {
+    background: #6c63ff;
+    color: #000;
+    font-size: 0.75rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    margin-left: 0.35rem;
+}
+
+.empty-state {
+    border: 1px dashed #555;
+    padding: 1rem;
+    border-radius: 8px;
+}

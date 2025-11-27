@@ -27,6 +27,7 @@ public sealed class PlainTextEndpointTests : IClassFixture<WebApplicationFactory
         payload.Should().Contain("NAVIGATION");
         payload.Should().Contain("ABOUT");
         payload.Should().Contain("BLOG");
+        payload.Should().Contain("GITHUB");
     }
 
     [Fact]
@@ -41,5 +42,6 @@ public sealed class PlainTextEndpointTests : IClassFixture<WebApplicationFactory
         response.Content.Headers.ContentType!.MediaType.Should().Be("text/plain");
         var payload = await response.Content.ReadAsStringAsync();
         payload.Should().Contain("Powered by ASCII Site");
+        payload.Should().Contain("ASCII Site [C#]");
     }
 }

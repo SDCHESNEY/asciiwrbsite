@@ -2,13 +2,13 @@
 
 This roadmap converts the architecture in `docs/idea.md` into a phased implementation plan with explicit deliverables, testing scope, and acceptance criteria aligned to `.github/copilot-instructions.md`.
 
-## Delivery Status (Updated Nov 24, 2025)
+## Delivery Status (Updated Nov 27, 2025)
 | Phase | Status | Notes |
 | --- | --- | --- |
 | Phase 0 – Foundations & Tooling | ✅ Completed | Analyzers, shared props, HTTPS/HSTS/CSP, `/health`, and CI-parity test runs are in place. |
 | Phase 1 – ASCII Core & Configuration | ✅ Completed | ASCII options/provider services, Hero & About components, curl/plaintext responses, and coverage for all acceptance criteria shipped. |
 | Phase 2 – Blog Platform | ✅ Completed | Markdown blog provider, Blazor pages, `/feed`, and curl summaries shipped with tests. |
-| Phase 3 – GitHub Showcase | ⏳ Not started | Pending kickoff. |
+| Phase 3 – GitHub Showcase | ✅ Completed | Live GitHub showcase UI, curl summaries, and tests landed. |
 | Phase 4 – Polish, Observability, Deployment | ⏳ Not started | Pending kickoff. |
 | Phase 5 – Future Enhancements | ⏳ Backlog | Optional stretch goals. |
 
@@ -62,6 +62,8 @@ This roadmap converts the architecture in `docs/idea.md` into a phased implement
 
 ## Phase 3 – GitHub Showcase & External Integrations
 **Goal:** Surface GitHub repositories with ASCII cards and optional live data from GitHub API.
+
+> **Status:** ✅ Completed in November 2025. Typed GitHub client with caching backs the new `GitHubShowcase` component, curl output, and integration/bUnit tests.
 
 | Workstream | Tasks | Definition of Done |
 | --- | --- | --- |

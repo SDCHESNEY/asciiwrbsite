@@ -1,8 +1,10 @@
+using System;
 using System.Linq;
 using System.Text;
 using AsciiSite.Shared.Blog;
 using AsciiSite.Shared.Configuration;
 using AsciiSite.Shared.Content;
+using AsciiSite.Shared.GitHub;
 
 namespace AsciiSite.Server;
 
@@ -10,16 +12,28 @@ internal static class PlainTextResponseWriter
 {
     private const int WrapWidth = 78;
     private const int BlogSummaryLimit = 3;
+    private const int RepoSummaryLimit = 4;
 
     public static async Task<string> BuildAsync(
         IAsciiArtProvider asciiArtProvider,
         IAboutContentProvider aboutContentProvider,
         IBlogPostProvider blogPostProvider,
+        IGitHubRepoService gitHubRepoService,
         CancellationToken cancellationToken)
     {
         var hero = asciiArtProvider.GetHero();
         var about = await aboutContentProvider.GetAsync(cancellationToken);
         var blogSummaries = await blogPostProvider.GetSummariesAsync(cancellationToken);
+        IReadOnlyList<GitHubRepo> repositories;
+
+        try
+        {
+            repositories = await gitHubRepoService.GetRepositoriesAsync(cancellationToken);
+        }
+        catch
+        {
+            repositories = Array.Empty<GitHubRepo>();
+        }
 
         var builder = new StringBuilder();
 
@@ -52,6 +66,7 @@ internal static class PlainTextResponseWriter
         }
 
         AppendBlogSection(builder, blogSummaries);
+        AppendGitHubSection(builder, repositories);
 
         builder.AppendLine();
         builder.AppendLine("Powered by ASCII Site. curl /text for this view.");
@@ -80,6 +95,40 @@ internal static class PlainTextResponseWriter
             }
 
             builder.AppendLine($"  Read: /blog/{summary.Slug}");
+            builder.AppendLine();
+        }
+    }
+
+    private static void AppendGitHubSection(StringBuilder builder, IReadOnlyList<GitHubRepo> repositories)
+    {
+        builder.AppendLine();
+        builder.AppendLine("GITHUB");
+
+        if (repositories.Count == 0)
+        {
+            builder.AppendLine("No repositories loaded. Configure GitHub:Repositories in appsettings.json.");
+            return;
+        }
+
+        foreach (var repo in repositories.Take(RepoSummaryLimit))
+        {
+            builder.AppendLine($"- {repo.DisplayName} [{repo.Language}] ⭐ {repo.Stars}");
+            builder.AppendLine($"  {repo.Url}");
+
+            if (!string.IsNullOrWhiteSpace(repo.Description))
+            {
+                foreach (var line in Wrap(repo.Description, WrapWidth - 2))
+                {
+                    builder.Append("  ");
+                    builder.AppendLine(line);
+                }
+            }
+
+            if (repo.Topics.Count > 0)
+            {
+                builder.AppendLine($"  Topics: {string.Join(", ", repo.Topics)}");
+            }
+
             builder.AppendLine();
         }
     }

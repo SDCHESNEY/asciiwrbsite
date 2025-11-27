@@ -1,0 +1,142 @@
+@page "/github"
+@inject IGitHubRepoService RepoService
+
+<PageTitle>GitHub Showcase</PageTitle>
+
+<section class="github-showcase">
+    <header>
+        <h1>GitHub Showcase</h1>
+        <p>Live (or cached) repository data with ASCII-inspired styling.</p>
+    </header>
+
+    @if (_loading)
+    {
+        <p class="text-muted">Loading repositories...</p>
+    }
+    else if (_repos.Count == 0)
+    {
+        <article class="empty-state">
+            <p>No repositories configured. Add entries to <code>GitHub:Repositories</code> in <code>appsettings</code>.</p>
+        </article>
+    }
+    else
+    {
+        <div class="filters">
+            <label for="languageFilter">
+                Language
+                <select id="languageFilter" data-filter="language" @bind="LanguageFilter" aria-label="Filter repositories by language">
+                    <option value="">All</option>
+                    @foreach (var language in _languages)
+                    {
+                        <option value="@language">@language</option>
+                    }
+                </select>
+            </label>
+            <label for="topicFilter">
+                Topic
+                <select id="topicFilter" data-filter="topic" @bind="TopicFilter" aria-label="Filter repositories by topic">
+                    <option value="">All</option>
+                    @foreach (var topic in _topics)
+                    {
+                        <option value="@topic">@topic</option>
+                    }
+                </select>
+            </label>
+        </div>
+
+        <div class="repo-grid">
+            @foreach (var repo in _filteredRepos)
+            {
+                <article class="repo-card" data-testid="repo-card">
+                    <header>
+                        <h2>@repo.DisplayName</h2>
+                        <p class="repo-meta">⭐ @repo.Stars | @repo.Language @if (repo.IsLive) { <span class="badge">live</span> }</p>
+                    </header>
+                    <p class="description">@repo.Description</p>
+                    <div class="topics">
+                        @foreach (var topic in repo.Topics)
+                        {
+                            <span class="topic">@topic</span>
+                        }
+                    </div>
+                    <footer>
+                        <span class="timestamp">Updated @repo.LastUpdated.ToLocalTime().ToString("MMM d, yyyy")</span>
+                        <a href="@repo.Url" target="_blank" rel="noopener" class="cta">View repo →</a>
+                    </footer>
+                </article>
+            }
+        </div>
+    }
+</section>
+
+@code {
+    private readonly List<GitHubRepo> _repos = new();
+    private List<GitHubRepo> _filteredRepos = new();
+    private SortedSet<string> _languages = new(StringComparer.OrdinalIgnoreCase);
+    private SortedSet<string> _topics = new(StringComparer.OrdinalIgnoreCase);
+    private bool _loading = true;
+    private string? _languageFilter;
+    private string? _topicFilter;
+
+    private string? LanguageFilter
+    {
+        get => _languageFilter;
+        set
+        {
+            var normalized = string.IsNullOrWhiteSpace(value) ? null : value;
+            if (string.Equals(_languageFilter, normalized, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            _languageFilter = normalized;
+            ApplyFilters();
+        }
+    }
+
+    private string? TopicFilter
+    {
+        get => _topicFilter;
+        set
+        {
+            var normalized = string.IsNullOrWhiteSpace(value) ? null : value;
+            if (string.Equals(_topicFilter, normalized, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            _topicFilter = normalized;
+            ApplyFilters();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var repos = await RepoService.GetRepositoriesAsync();
+        _repos.AddRange(repos);
+        _languages = new SortedSet<string>(_repos.Select(repo => repo.Language).Where(lang => !string.IsNullOrWhiteSpace(lang)), StringComparer.OrdinalIgnoreCase);
+        _topics = new SortedSet<string>(_repos.SelectMany(repo => repo.Topics), StringComparer.OrdinalIgnoreCase);
+        ApplyFilters();
+        _loading = false;
+    }
+
+    private void ApplyFilters()
+    {
+        IEnumerable<GitHubRepo> query = _repos;
+
+        if (!string.IsNullOrWhiteSpace(_languageFilter))
+        {
+            query = query.Where(repo => Matches(repo.Language, _languageFilter));
+        }
+
+        if (!string.IsNullOrWhiteSpace(_topicFilter))
+        {
+            query = query.Where(repo => repo.Topics.Any(topic => Matches(topic, _topicFilter)));
+        }
+
+        _filteredRepos = query.OrderByDescending(repo => repo.Stars).ThenBy(repo => repo.DisplayName, StringComparer.OrdinalIgnoreCase).ToList();
+    }
+
+    private static bool Matches(string? left, string? right)
+        => string.Equals(left, right, StringComparison.OrdinalIgnoreCase);
+}
