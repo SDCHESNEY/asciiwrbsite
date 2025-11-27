@@ -9,7 +9,7 @@ This roadmap converts the architecture in `docs/idea.md` into a phased implement
 | Phase 1 – ASCII Core & Configuration | ✅ Completed | ASCII options/provider services, Hero & About components, curl/plaintext responses, and coverage for all acceptance criteria shipped. |
 | Phase 2 – Blog Platform | ✅ Completed | Markdown blog provider, Blazor pages, `/feed`, and curl summaries shipped with tests. |
 | Phase 3 – GitHub Showcase | ✅ Completed | Live GitHub showcase UI, curl summaries, and tests landed. |
-| Phase 4 – Polish, Observability, Deployment | ⏳ Not started | Pending kickoff. |
+| Phase 4 – Polish, Observability, Deployment | ✅ Completed | Structured logging, /metrics, compression, and container delivery shipped. |
 | Phase 5 – Future Enhancements | ⏳ Backlog | Optional stretch goals. |
 
 ## Phase 0 – Foundations & Tooling
@@ -80,12 +80,15 @@ This roadmap converts the architecture in `docs/idea.md` into a phased implement
 ## Phase 4 – Polish, Observability, and Deployment Automation
 **Goal:** Harden for production with logging, metrics, Docker delivery, and deployment scripts for Azure/GCP.
 
+> **Status:** ✅ Completed in November 2025. Structured logging with correlation IDs, optional Application Insights telemetry, `/metrics`, compression/caching middleware, and container/deployment assets are live.
+
 | Workstream | Tasks | Definition of Done |
 | --- | --- | --- |
 | Observability | - Configure structured logging (Serilog or ILogger providers) with correlation IDs.<br>- Add Application Insights (Azure) or Cloud Logging exporter (GCP).<br>- Implement `/metrics` or OTLP exporter (optional). | - Integration tests ensure correlation ID emitted; logging verified locally.<br>- `dotnet monitor` or OTLP documented for prod debugging. |
 | Performance & Security | - Profile with Visual Studio diagnostics; add caching/compression middleware as needed.<br>- Final security audit: CSP tuning, SSRF protections, markdown sanitization review. | - Load test (k6 or similar) meets latency SLA.<br>- Security checklist signed off (OWASP Top 10 mitigations documented). |
 | Docker & Deploy | - Author multi-stage Dockerfile + sample `docker-compose.yml`.
 - Provide Azure (Bicep/ARM or CLI) and GCP (gcloud or Terraform) deploy scripts.
+- Document container flows + helper scripts in `docs/deploy.md`.
 - Add GitHub Actions workflow to build/push image to ACR or GCR and deploy (manual approval). | - `docker build` + `docker run` used in CI to validate image.
 - Sample deployment to test environment (Azure Container Apps or Cloud Run) documented with screenshots/CLI output.
 - Health checks wired into platform (App Service/Cloud Run) hitting `/healthz`. |

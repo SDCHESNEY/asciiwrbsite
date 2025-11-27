@@ -1,5 +1,6 @@
 extern alias server;
 
+using System;
 using System.Net;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -23,6 +24,9 @@ public sealed class PlainTextEndpointTests : IClassFixture<WebApplicationFactory
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         response.Content.Headers.ContentType!.MediaType.Should().Be("text/plain");
+        response.Headers.CacheControl!.Public.Should().BeTrue();
+        response.Headers.CacheControl.MaxAge.Should().Be(TimeSpan.FromSeconds(30));
+        response.Headers.Should().ContainKey("Vary");
         var payload = await response.Content.ReadAsStringAsync();
         payload.Should().Contain("NAVIGATION");
         payload.Should().Contain("ABOUT");
@@ -40,6 +44,8 @@ public sealed class PlainTextEndpointTests : IClassFixture<WebApplicationFactory
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         response.Content.Headers.ContentType!.MediaType.Should().Be("text/plain");
+        response.Headers.CacheControl!.Public.Should().BeTrue();
+        response.Headers.CacheControl.MaxAge.Should().Be(TimeSpan.FromSeconds(30));
         var payload = await response.Content.ReadAsStringAsync();
         payload.Should().Contain("Powered by ASCII Site");
         payload.Should().Contain("ASCII Site [C#]");

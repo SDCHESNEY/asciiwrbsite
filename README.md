@@ -17,7 +17,7 @@ Each increment follows the detailed plan in `docs/roadmap.md`. Highlights:
 - **Phase 1 – ASCII Core & Configuration (complete):** `AsciiArtOptions`, provider services, Hero & About components, and curl/plaintext delivery (`/text`, `Accept: text/plain`).
 - **Phase 2 – Blog Platform (complete):** markdown-driven posts (`content/blog/{slug}.md`), caching, YAML frontmatter validation, `BlogIndex`/`BlogPost` components, RSS feed, and curl summaries.
 - **Phase 3 – GitHub Showcase (complete):** typed `HttpClient` integrations, ASCII-styled repo cards, filters, and curl-safe fallbacks.
-- **Phase 4 – Observability & Delivery:** structured logging, metrics, Docker multi-stage builds, cloud deployment scripts, and CI publishing workflows.
+- **Phase 4 – Observability & Delivery (complete):** structured logging with correlation IDs, `/metrics`, response compression/caching, Docker multi-stage builds, and Azure/GCP deployment scripts.
 - **Phase 5 – Future Enhancements:** admin tooling, localization, ASCII animations, headless CMS integrations.
 
 Acceptance criteria per phase always include updated documentation, passing format/build/test/vulnerability scans, and security reviews.
@@ -107,6 +107,22 @@ tags:
 - Visit `/github` to see ASCII-bordered repo cards with live/fallback metadata, sortable by star count and filterable via language/topic dropdowns.
 - The navigation menu and home page link directly to the showcase, keeping discovery simple for browser users.
 - `/text` (and `Accept: text/plain` on `/`) now includes a `GITHUB` section that lists up to four repositories with links, topics, and wrapped descriptions so curl users receive the same insight as the UI.
+
+## Phase 4 Usage Guide
+
+### Logging, telemetry, and metrics
+- Structured logging is enabled via `AddJsonConsole` with scopes + Activity tracking. Correlate any request by sending `X-Correlation-Id` (GUID). The middleware will reuse caller-supplied IDs or generate new ones and emit them in every response.
+- Configure Azure Application Insights by setting `ApplicationInsights:ConnectionString` in `appsettings.Production.json`, environment variables, or Azure Key Vault secrets. When omitted, no telemetry is sent.
+- Scrape `/metrics` to gather Prometheus-style counters for total requests plus `/text`, `/feed`, and `/github` visits. The endpoint returns `text/plain` and is safe for unauthenticated scraping.
+
+### Performance & security
+- Response compression (gzip + Brotli) is enabled for HTTPS traffic, and `/text` + `/feed` responses now emit cache headers (`Cache-Control: public, max-age=30/300` and `Vary: Accept`).
+- Additional headers (`Permissions-Policy`, `Cross-Origin-Opener-Policy`, `Cross-Origin-Resource-Policy`) lock down browsers. Host sanitization prevents SSRF when generating RSS URLs.
+
+### Containers & deployment
+- Use the provided multi-stage `Dockerfile` to build minimal runtime images (`docker build -t ascii-site:dev .`).
+- `docker-compose.yml` runs the container locally with health checks and environment variable plumbing.
+- See `docs/deploy.md` plus the helper scripts in `deploy/` (`azure-container-apps.sh`, `gcp-cloud-run.sh`) for production-ready deployment flows.
 
 ## Development
 ```bash

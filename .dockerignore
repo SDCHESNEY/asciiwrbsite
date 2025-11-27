@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+**/.vs/
+**/*.user
+**/*.suo
+**/*.csproj.user
+.git
+.gitignore
+.vscode
+Dockerfile
+**/node_modules/
+TestsResults/
+*.coverage

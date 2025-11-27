@@ -1,0 +1,19 @@
+version: "3.9"
+services:
+  ascii-site:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ascii-site:latest
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ApplicationInsights__ConnectionString: ""
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
