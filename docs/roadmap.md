@@ -10,7 +10,7 @@ This roadmap converts the architecture in `docs/idea.md` into a phased implement
 | Phase 2 – Blog Platform | ✅ Completed | Markdown blog provider, Blazor pages, `/feed`, and curl summaries shipped with tests. |
 | Phase 3 – GitHub Showcase | ✅ Completed | Live GitHub showcase UI, curl summaries, and tests landed. |
 | Phase 4 – Polish, Observability, Deployment | ✅ Completed | Structured logging, /metrics, compression, and container delivery shipped. |
-| Phase 5 – Future Enhancements | ⏳ Backlog | Optional stretch goals. |
+| Phase 5 – Localization & Theming | ✅ Completed | Localization provider, preferences panel, and Accept-Language-aware plaintext output shipped. |
 
 ## Phase 0 – Foundations & Tooling
 **Goal:** Ensure the repo enforces coding standards, testing, and security pre-checks before feature work begins.
@@ -98,12 +98,22 @@ This roadmap converts the architecture in `docs/idea.md` into a phased implement
 - Monitoring confirms request logs and health checks visible.
 - All documentation (`docs/idea.md`, `docs/roadmap.md`, README) reflects final architecture and operations guide.
 
-## Phase 5 – Future Enhancements (Optional)
+## Phase 5 – Localization & Theming Enhancements
+**Goal:** Deliver a localized hero experience plus user-controlled themes/locales that stay in sync across Blazor and curl/plaintext responses.
+
+> **Status:** ✅ Completed in November 2025. Localization options, persistence services, and Accept-Language parsing land with full unit, component, and integration coverage.
+
+| Workstream | Tasks | Definition of Done |
+| --- | --- | --- |
+| Localization Options & Provider | - Add `LocalizationOptions` (server + client) describing available cultures and hero translations.<br>- Implement `ILocalizationProvider` that resolves translations from config, supports fallback order, and plugs into Hero + plaintext rendering.<br>- Extend configuration binding and validation to keep cultures consistent across projects. | - Unit tests cover culture normalization, fallback order, and missing resource handling.<br>- `Hero.razor` renders localized headline and tagline without breaking SSR.<br>- Options binding validated during startup with descriptive logs when configuration is incomplete. |
+| Preference Persistence & UI | - Create `PreferencesStore`, `ThemeManager`, and `LocalizationState` services using JS interop backed by `wwwroot/js/preferences.js`.<br>- Build `PreferencesPanel` component that exposes theme toggle (light/dark/system) and locale selector with optimistic UI updates.<br>- Wire hero/about components to respond to localization events and update CSS variables via data-theme attribute. | - Component/bUnit tests ensure UI reacts to preference changes and disposes subscriptions.<br>- Theme choice stored in `localStorage` and re-applied before Blazor hydration.<br>- Accessibility verified for buttons/select fields (keyboard + ARIA labels). |
+| Plaintext & Integration Tests | - Update `/text` and `Accept: text/plain` handler to honor `Accept-Language` plus persisted hero localization.<br>- Document Accept-Language precedence (header > stored preference > default) and ensure `PlainTextResponseWriter` handles culture-specific hero content.<br>- Extend integration suite to cover culture negotiation and fallback. | - Integration tests assert Spanish (`es`) responses include localized tagline + CTA.<br>- Unit tests mock `IOptionsMonitor<LocalizationOptions>` for hero fallback behavior.<br>- README + roadmap updated to describe new user controls and culture support. |
+
+### Optional Backlog (Future Stretch)
 - Admin UI for managing ASCII art and blog posts.
-- Localization/i18n for ASCII content.
 - Animated ASCII effects via SignalR (with curl-safe fallback).
 - Headless CMS integration (e.g., Contentful) for blog/posts.
-- Additional themes (light/dark) with persisted user preference across browser + curl output.
+- Additional locales beyond English/Spanish plus localized blog content.
 
 ## Verification Checklist (Per Release)
 1. `dotnet format`, `dotnet build`, `dotnet test --configuration Release`, `dotnet list package --vulnerable` all pass.

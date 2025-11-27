@@ -18,7 +18,7 @@ Each increment follows the detailed plan in `docs/roadmap.md`. Highlights:
 - **Phase 2 – Blog Platform (complete):** markdown-driven posts (`content/blog/{slug}.md`), caching, YAML frontmatter validation, `BlogIndex`/`BlogPost` components, RSS feed, and curl summaries.
 - **Phase 3 – GitHub Showcase (complete):** typed `HttpClient` integrations, ASCII-styled repo cards, filters, and curl-safe fallbacks.
 - **Phase 4 – Observability & Delivery (complete):** structured logging with correlation IDs, `/metrics`, response compression/caching, Docker multi-stage builds, and Azure/GCP deployment scripts.
-- **Phase 5 – Future Enhancements:** admin tooling, localization, ASCII animations, headless CMS integrations.
+- **Phase 5 – Localization & Theming (complete):** localization options/provider, Accept-Language support for `/text`, Preferences Panel with theme and locale toggles, and persistence via JS interop/localStorage.
 
 Acceptance criteria per phase always include updated documentation, passing format/build/test/vulnerability scans, and security reviews.
 
@@ -123,6 +123,18 @@ tags:
 - Use the provided multi-stage `Dockerfile` to build minimal runtime images (`docker build -t ascii-site:dev .`).
 - `docker-compose.yml` runs the container locally with health checks and environment variable plumbing.
 - See `docs/deploy.md` plus the helper scripts in `deploy/` (`azure-container-apps.sh`, `gcp-cloud-run.sh`) for production-ready deployment flows.
+
+## Phase 5 Usage Guide
+
+### Configure localization
+- Define cultures and hero translations under the `Localization` section in both client and server `appsettings*.json`. Each culture specifies `Culture`, `DisplayName`, `HeroHeading`, `HeroTagline`, and CTA text/URL overrides as needed.
+- Defaults ship with English (`en`) and Spanish (`es`). Add more cultures by extending the configuration and updating `LocalizedCultures` to keep lists in sync.
+- Requests resolve cultures in the following order: explicit user preference (stored in `localStorage`), `Accept-Language` header, then default culture. Missing translations fall back to the default hero strings.
+
+### Theme and preference controls
+- `wwwroot/js/preferences.js` exposes helpers used by `PreferencesStore`, `ThemeManager`, and `LocalizationState` to hydrate preferences before Blazor renders. The script is loaded ahead of `blazor.web.js` so persisted themes apply instantly (no flash of wrong theme).
+- The `PreferencesPanel` component surfaces a theme switcher (dark/light/system) and locale dropdown. Choices are persisted per-browser and also drive the ASCII hero plus plaintext output.
+- Tests cover localization provider fallback, plaintext Accept-Language negotiation, and the hero component’s reaction to runtime locale changes, ensuring curl and UI paths stay in sync.
 
 ## Development
 ```bash

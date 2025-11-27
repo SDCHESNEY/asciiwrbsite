@@ -50,4 +50,17 @@ public sealed class PlainTextEndpointTests : IClassFixture<WebApplicationFactory
         payload.Should().Contain("Powered by ASCII Site");
         payload.Should().Contain("ASCII Site [C#]");
     }
+
+    [Fact]
+    public async Task TextEndpoint_HonorsAcceptLanguage()
+    {
+        var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.AcceptLanguage.ParseAdd("es");
+
+        var response = await client.GetAsync("/text");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var payload = await response.Content.ReadAsStringAsync();
+        payload.Should().Contain("Narrativas ASCII para navegadores y terminales.");
+    }
 }

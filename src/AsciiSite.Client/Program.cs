@@ -1,8 +1,10 @@
 using AsciiSite.Client.Components;
 using AsciiSite.Shared.Blog;
+using AsciiSite.Client.Services;
 using AsciiSite.Shared.Configuration;
 using AsciiSite.Shared.Content;
 using AsciiSite.Shared.GitHub;
+using AsciiSite.Shared.Localization;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,12 +21,17 @@ builder.Services.AddScoped<IAsciiArtProvider, AsciiArtProvider>();
 builder.Services.AddScoped<IAboutContentProvider, FileSystemAboutContentProvider>();
 builder.Services.AddSingleton<IBlogPostProvider, FileSystemBlogPostProvider>();
 builder.Services.Configure<GitHubRepoOptions>(builder.Configuration.GetSection(GitHubRepoOptions.SectionName));
+builder.Services.Configure<LocalizationOptions>(builder.Configuration.GetSection(LocalizationOptions.SectionName));
 builder.Services.AddHttpClient<IGitHubRepoService, GitHubRepoService>(client =>
 {
     client.BaseAddress = new Uri("https://api.github.com/");
     client.DefaultRequestHeaders.UserAgent.ParseAdd("AsciiSite.Client/1.0");
     client.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
 });
+builder.Services.AddScoped<ILocalizationProvider, LocalizationProvider>();
+builder.Services.AddScoped<PreferencesStore>();
+builder.Services.AddScoped<ThemeManager>();
+builder.Services.AddScoped<LocalizationState>();
 
 var app = builder.Build();
 

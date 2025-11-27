@@ -10,6 +10,7 @@ using AsciiSite.Shared.Blog;
 using AsciiSite.Shared.Configuration;
 using AsciiSite.Shared.Content;
 using AsciiSite.Shared.GitHub;
+using AsciiSite.Shared.Localization;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
@@ -65,12 +66,14 @@ builder.Services.AddScoped<IAsciiArtProvider, AsciiArtProvider>();
 builder.Services.AddScoped<IAboutContentProvider, FileSystemAboutContentProvider>();
 builder.Services.AddSingleton<IBlogPostProvider, FileSystemBlogPostProvider>();
 builder.Services.Configure<GitHubRepoOptions>(builder.Configuration.GetSection(GitHubRepoOptions.SectionName));
+builder.Services.Configure<LocalizationOptions>(builder.Configuration.GetSection(LocalizationOptions.SectionName));
 builder.Services.AddHttpClient<IGitHubRepoService, GitHubRepoService>(client =>
     {
         client.BaseAddress = new Uri("https://api.github.com/");
         client.DefaultRequestHeaders.UserAgent.ParseAdd("AsciiSite.Server/1.0");
         client.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
     });
+builder.Services.AddSingleton<ILocalizationProvider, LocalizationProvider>();
 
 var app = builder.Build();
 
@@ -129,7 +132,9 @@ app.Use(async (context, next) =>
         var about = context.RequestServices.GetRequiredService<IAboutContentProvider>();
         var blog = context.RequestServices.GetRequiredService<IBlogPostProvider>();
         var repos = context.RequestServices.GetRequiredService<IGitHubRepoService>();
-        var payload = await PlainTextResponseWriter.BuildAsync(hero, about, blog, repos, context.RequestAborted);
+        var localization = context.RequestServices.GetRequiredService<ILocalizationProvider>();
+        var heroLocalization = localization.GetHeroLocalization(ResolveCulture(context));
+        var payload = await PlainTextResponseWriter.BuildAsync(hero, about, blog, repos, heroLocalization, context.RequestAborted);
         context.Response.ContentType = "text/plain";
         var headers = context.Response.GetTypedHeaders();
         headers.CacheControl = new CacheControlHeaderValue { Public = true, MaxAge = TimeSpan.FromSeconds(30) };
@@ -146,9 +151,10 @@ app.UseResponseCaching();
 
 app.MapHealthChecks("/health");
 
-app.MapGet("/text", async (HttpContext httpContext, IAsciiArtProvider asciiArtProvider, IAboutContentProvider aboutContentProvider, IBlogPostProvider blogPostProvider, IGitHubRepoService gitHubRepoService, CancellationToken cancellationToken) =>
+app.MapGet("/text", async (HttpContext httpContext, IAsciiArtProvider asciiArtProvider, IAboutContentProvider aboutContentProvider, IBlogPostProvider blogPostProvider, IGitHubRepoService gitHubRepoService, ILocalizationProvider localizationProvider, CancellationToken cancellationToken) =>
     {
-        var payload = await PlainTextResponseWriter.BuildAsync(asciiArtProvider, aboutContentProvider, blogPostProvider, gitHubRepoService, cancellationToken);
+        var heroLocalization = localizationProvider.GetHeroLocalization(ResolveCulture(httpContext));
+        var payload = await PlainTextResponseWriter.BuildAsync(asciiArtProvider, aboutContentProvider, blogPostProvider, gitHubRepoService, heroLocalization, cancellationToken);
         var headers = httpContext.Response.GetTypedHeaders();
         headers.CacheControl = new CacheControlHeaderValue { Public = true, MaxAge = TimeSpan.FromSeconds(30) };
         httpContext.Response.Headers[HeaderNames.Vary] = "Accept";
@@ -185,6 +191,25 @@ app.MapGet("/feed", async (HttpContext context, IBlogPostProvider blogPostProvid
 app.MapGet("/metrics", (RequestMetrics metrics) => Results.Text(metrics.ToPrometheus(), "text/plain"))
     .WithName("GetMetrics")
     .WithOpenApi();
+
+static string? ResolveCulture(HttpContext context)
+{
+    if (!context.Request.Headers.TryGetValue(HeaderNames.AcceptLanguage, out var values))
+    {
+        return null;
+    }
+
+    foreach (var entry in values.ToString().Split(',', StringSplitOptions.RemoveEmptyEntries))
+    {
+        var culture = entry.Split(';', 2)[0].Trim();
+        if (!string.IsNullOrWhiteSpace(culture))
+        {
+            return culture;
+        }
+    }
+
+    return null;
+}
 
 var summaries = new[]
 {

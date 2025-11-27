@@ -5,6 +5,7 @@ using AsciiSite.Shared.Blog;
 using AsciiSite.Shared.Configuration;
 using AsciiSite.Shared.Content;
 using AsciiSite.Shared.GitHub;
+using AsciiSite.Shared.Localization;
 
 namespace AsciiSite.Server;
 
@@ -19,6 +20,7 @@ internal static class PlainTextResponseWriter
         IAboutContentProvider aboutContentProvider,
         IBlogPostProvider blogPostProvider,
         IGitHubRepoService gitHubRepoService,
+        HeroLocalization heroLocalization,
         CancellationToken cancellationToken)
     {
         var hero = asciiArtProvider.GetHero();
@@ -43,8 +45,16 @@ internal static class PlainTextResponseWriter
         }
 
         builder.AppendLine();
-        builder.AppendLine(hero.Tagline);
-        builder.AppendLine($"[{hero.CallToActionText}] -> {hero.CallToActionUrl}");
+        var tagline = string.IsNullOrWhiteSpace(heroLocalization.Tagline) ? hero.Tagline : heroLocalization.Tagline;
+        var callToActionText = string.IsNullOrWhiteSpace(heroLocalization.CallToActionText)
+            ? hero.CallToActionText
+            : heroLocalization.CallToActionText;
+        var callToActionUrl = string.IsNullOrWhiteSpace(heroLocalization.CallToActionUrl)
+            ? hero.CallToActionUrl
+            : heroLocalization.CallToActionUrl;
+
+        builder.AppendLine(tagline);
+        builder.AppendLine($"[{callToActionText}] -> {callToActionUrl}");
         builder.AppendLine();
         builder.AppendLine("NAVIGATION");
 

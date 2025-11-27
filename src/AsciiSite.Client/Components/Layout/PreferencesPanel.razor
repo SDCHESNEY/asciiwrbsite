@@ -1,0 +1,71 @@
+@using AsciiSite.Client.Services
+@inject LocalizationState Localization
+@inject ThemeManager ThemeManager
+@implements IDisposable
+
+<div class="preferences-panel" aria-label="Display settings">
+    <label>
+        Theme
+        <button type="button" class="theme-toggle" @onclick="ToggleTheme">
+            @CurrentThemeLabel
+        </button>
+    </label>
+    <label>
+        Language
+        <select @onchange="OnCultureChanged" value="@Localization.CurrentCulture">
+            @foreach (var culture in Localization.Cultures)
+            {
+                <option value="@culture.Culture">@culture.DisplayName</option>
+            }
+        </select>
+    </label>
+</div>
+
+@code {
+    private bool _initialized;
+
+    protected override void OnInitialized()
+    {
+        Localization.EnsureInitialized();
+        Localization.Changed += HandleLocalizationChanged;
+        ThemeManager.ThemeChanged += HandleThemeChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ThemeManager.EnsureInitializedAsync();
+            await Localization.LoadPersistedAsync();
+            _initialized = true;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private string CurrentThemeLabel => ThemeManager.CurrentTheme == ThemeManager.ThemePreference.Dark ? "Dark" : "Light";
+
+    private async Task ToggleTheme()
+    {
+        await ThemeManager.ToggleAsync();
+    }
+
+    private async Task OnCultureChanged(ChangeEventArgs args)
+    {
+        if (!_initialized)
+        {
+            return;
+        }
+
+        await Localization.SetCultureAsync(args.Value?.ToString());
+    }
+
+    private void HandleLocalizationChanged() => InvokeAsync(StateHasChanged);
+
+    private void HandleThemeChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        Localization.Changed -= HandleLocalizationChanged;
+        ThemeManager.ThemeChanged -= HandleThemeChanged;
+    }
+}

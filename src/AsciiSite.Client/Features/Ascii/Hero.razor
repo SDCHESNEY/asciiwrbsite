@@ -1,5 +1,7 @@
 @using AsciiSite.Shared.Configuration
 @inject IAsciiArtProvider AsciiArtProvider
+@inject LocalizationState LocalizationState
+@implements IDisposable
 
 @if (_hero is null)
 {
@@ -11,8 +13,8 @@ else
 {
     <section class="hero" aria-label="ASCII hero">
         <pre>@HeroBlock</pre>
-        <p class="tagline">@_hero.Tagline</p>
-        <a class="cta" href="@_hero.CallToActionUrl">@_hero.CallToActionText</a>
+        <p class="tagline">@DisplayTagline</p>
+        <a class="cta" href="@DisplayCallToActionUrl">@DisplayCallToActionText</a>
         <ul class="nav-links">
             @foreach (var link in _hero.Navigation)
             {
@@ -29,8 +31,29 @@ else
         ? string.Empty
         : string.Join(Environment.NewLine, _hero.HeroLines);
 
+    private string DisplayTagline => LocalizationState.CurrentHero.Tagline?.Length > 0
+        ? LocalizationState.CurrentHero.Tagline
+        : _hero?.Tagline ?? string.Empty;
+
+    private string DisplayCallToActionText => LocalizationState.CurrentHero.CallToActionText?.Length > 0
+        ? LocalizationState.CurrentHero.CallToActionText
+        : _hero?.CallToActionText ?? string.Empty;
+
+    private string DisplayCallToActionUrl => string.IsNullOrWhiteSpace(LocalizationState.CurrentHero.CallToActionUrl)
+        ? _hero?.CallToActionUrl ?? "/"
+        : LocalizationState.CurrentHero.CallToActionUrl!;
+
     protected override void OnInitialized()
     {
         _hero = AsciiArtProvider.GetHero();
+        LocalizationState.EnsureInitialized();
+        LocalizationState.Changed += HandleLocalizationChanged;
+    }
+
+    private void HandleLocalizationChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        LocalizationState.Changed -= HandleLocalizationChanged;
     }
 }
